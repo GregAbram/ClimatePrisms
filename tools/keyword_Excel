@@ -1,0 +1,42 @@
+#! python
+
+import sys, os
+from pymongo import MongoClient
+from openpyxl import load_workbook
+from string import ascii_uppercase
+
+if len(sys.argv) != 2:
+	print 'syntax: ', sys.argv[0], 'spreadsheet.xlsx'
+	exit(1)
+
+wbname = sys.argv[-1]
+if wbname [-5:] != '.xlsx':
+	wbname += '.xlsx'
+
+if not os.path.exists(wbname):
+	print wbname, ' does not exist'
+	exit(1)
+
+wb = load_workbook(wbname)
+ws = wb.active
+
+keys = ""
+records = []
+for i in ws.iter_rows():
+	if keys == "":
+		keys = [j.value for j in i]
+	else:
+		record = {}
+		for j,k in enumerate(keys):
+			v = i[j].value
+			if v == None:
+				record[k] = ""
+			elif k == 'random':
+				record[k] = int(i[j].value)
+			else:
+				record[k] = i[j].value
+	
+		records.append(record)
+
+m = MongoClient()
+m.climateprisms['keywords'].insert_many(records)

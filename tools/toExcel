@@ -1,0 +1,52 @@
+#! python
+
+import sys, os
+from pymongo import MongoClient
+from openpyxl import Workbook
+from string import ascii_uppercase
+
+if len(sys.argv) != 2 and len(sys.argv) != 3:
+	print 'syntax: ', sys.argv[0], '[-f] spreadsheet.xlsx'
+	exit(1)
+
+wbname = sys.argv[-1]
+if wbname [-5:] != '.xlsx':
+	wbname += '.xlsx'
+
+if os.path.exists(wbname):
+	if sys.argv[1] == '-f':
+		os.remove(wbname)
+	else:
+		print wbname, 'exists; use -f to overwrite'
+		exit(1)
+
+m = MongoClient()
+
+records = [record for record in m.climateprisms.nodes.find()]
+
+keyset = set(records[0].keys())
+for record in records[1:]:
+	record_keyset = set(record.keys())
+	keyset = keyset & record_keyset
+
+keys = list(keyset)
+del keys[keys.index('_id')]
+
+wb = Workbook()
+ws = wb.active
+
+cols = []
+for i in ascii_uppercase:
+	cols.append(i)
+
+for i in ascii_uppercase:
+	cols.append(i+i)
+
+for f,key in enumerate(keys):
+	ws[cols[f]+'1'] = key
+
+for r,record in enumerate(records):
+	for f,val in enumerate([str(record[i]) for i in keys]):
+		ws[cols[f]+str(r+2)] = val
+
+wb.save(wbname)

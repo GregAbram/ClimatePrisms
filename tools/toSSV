@@ -1,0 +1,50 @@
+#! python
+
+import sys, os
+from pymongo import MongoClient
+from openpyxl import Workbook
+from string import ascii_uppercase
+
+if len(sys.argv) != 2 and len(sys.argv) != 3:
+	print 'syntax: ', sys.argv[0], '[-f] filename.ssv'
+	exit(1)
+
+fname = sys.argv[-1]
+if fname [-4:] != '.ssv':
+	fname += '.ssv'
+
+if os.path.exists(fname):
+	if sys.argv[1] == '-f':
+		os.remove(fname)
+	else:
+		print fname, 'exists; use -f to overwrite'
+		exit(1)
+
+m = MongoClient()
+
+def dict2str(a):
+	aa = {}
+	for i in a:
+		aa[str(i)] = str(a[i])
+	return aa
+	
+records = sorted([dict2str(record) for record in m.climateprisms.nodes.find()], key=lambda record: record['filename'])
+
+keyset = set(records[0].keys())
+for record in records[1:]:
+	record_keyset = set(record.keys())
+	keyset = keyset & record_keyset
+
+keys = sorted(list(keyset), key=lambda a: 'aaaaaa' if a == 'filename' else a)
+del keys[keys.index('_id')]
+
+outf = open(fname, 'w')
+
+outf.write( ';'.join(keys) + '\n')
+for r,record in enumerate(records):
+	row = []
+	for val in [str(record[i]) for i in keys]:
+		row.append(val);
+	outf.write(';'.join(row) + '\n')
+
+outf.close()

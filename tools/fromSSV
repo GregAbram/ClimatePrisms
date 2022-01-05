@@ -1,0 +1,42 @@
+#! python
+
+import sys, os
+from pymongo import MongoClient
+from openpyxl import load_workbook
+from string import ascii_uppercase
+
+if len(sys.argv) != 2:
+	print 'syntax: ', sys.argv[0], 'filename.ssv'
+	exit(1)
+
+fname = sys.argv[-1]
+if fname [-4:] != '.ssv':
+	fname += '.ssv'
+
+if not os.path.exists(fname):
+	print fname, ' does not exist'
+	exit(1)
+
+inf = open(fname)
+
+keys = inf.readline().strip().split(';')
+
+records = []
+for line in inf:
+	row = line.strip().split(';')
+	
+	record = {}
+	for j,k in enumerate(keys):
+		if k == 'random':
+			if row[j] == '':
+				record[k] = 0
+			else:
+				record[k] = int(row[j])
+		else:
+			record[k] = row[j]
+
+	records.append(record)
+
+
+m = MongoClient()
+m['climateprisms']['nodes'].insert_many(records)

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<!-- <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> -->
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta http-equiv='cache-control' content='no-cache'>
+	<meta http-equiv='expires' content='0'>
+	<meta http-equiv='pragma' content='no-cache'>
+  <link rel="stylesheet" href="project.css">
+	<style>
+		body {
+			font-family: "Lucida Grande", "Lucida Sans Unicode", Arial, sans-serif;
+
+		}
+
+		.home-container {
+			font-family: "Lucida Grande", "Lucida Sans Unicode", Arial, sans-serif;
+			letter-spacing: -2px;
+			font-weight: 900;
+			font-size: 100%;
+		}
+
+		#container {
+      -webkit-touch-callout: none; /* iOS Safari */
+      -webkit-user-select: none; /* Safari */
+      -khtml-user-select: none; /* Konqueror HTML */
+      -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* Internet Explorer/Edge */
+      user-select: none; /* Non-prefixed version, currently supported by Chrome and Opera */
+      cursor: url("icons/cursor1.png"), auto;
+		}
+
+		input, .label, select {
+			font-size: 16px;
+			font-family: Verdana, Arial, sans-serif;
+			padding: 2px;
+		}
+
+		.start:hover span {
+			color: #ada795;
+			text-shadow: 2px 2px 8px #000000;
+		}
+
+		#ping-container,
+		#pong-container {
+			background-size: cover;
+			background-repeat: no-repeat;
+		}
+
+		body {
+
+        }
+	</style>
+</head>
+<script src="js/jquery.min.js"></script>
+<script src="js/createView.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/imageloader.js"></script>
+<script src="js/Animator.js"></script>
+<script src="js/introAnimator.js"></script>
+<script src="js/idle-timer.js"></script>
+<script src="js/ThemeAnimator.js"></script>
+<script src="js/CategoryAnimator.js"></script>
+<script src="js/DisplayExp_Choice.js"></script>
+
+<script>
+	var Bradbury = function() {
+		this.animator = new Animator();
+		this.introAnimator = new introAnimator();
+		this.themeAnimator = new ThemeAnimator();
+		this.categoryAnimator = new CategoryAnimator();
+		this.displayExp_Choice = new DisplayExp_Choice();
+		this.layout = new Layout;
+
+		$.ajax({
+			dataType: 'json',
+			url: 'http://127.0.0.1:1337/api/get_fillers',
+			context: this,
+      async: false,
+			success: function(result) {
+				this.fillers = result['data'];
+			}
+		})
+	}
+
+	var RequestRunning = false;
+
+	function loadSelectedContent(event, selected_content)
+	{
+
+		if (selected_content['content'] != '')
+		{
+      content = selected_content['content'];
+			if (content.substr(0,4) == 'http')
+				window.open(content);
+			else
+				state.categoryAnimator.run(selected_content['content'], '%s:%s' % (selected_content['theme'], selected_content['story']));
+		}
+		else
+		{
+			if (RequestRunning) {
+				console.log("STOP");
+				return;
+			}
+
+			RequestRunning = true;
+
+			var imageClicked = event.target.id;
+			$('#' + imageClicked).css('outline', '5px #c7c59a');
+
+			$.ajax({
+				dataType: 'json',
+				url: "http://127.0.0.1:1337/api/get_json",
+				data: selected_content,
+				success: function(result) {
+					createView(state, result['data']);
+				}
+			});
+		}
+	}
+
+	//obtain content inside story category
+	function findTag(tag) {
+		$.ajax({
+			dataType: 'json',
+			url: "http://127.0.0.1:1337/api/get_tag?tag=" + encodeURI(tag),
+			data: {},
+			success: function(result) {
+				createView(state, result['data']);
+			}
+		});
+	}
+
+	function toggle_form() {
+		if (get('node_form').style.visibility == 'hidden') {
+			get('node_form').style.visibility = 'visible';
+		} else {
+			get('node_form').style.visibility = 'hidden';
+		}
+	}
+
+	function showtext(id, caption, provenance) {
+		$(id).html('Hello')
+		$(id).css('visibility', 'visible');
+	}
+
+	function hidetext() {
+		$(id).css('visibility', 'hidden');
+	}
+</script>
+
+<body style="margin:0;overflow:hidden">
+	<script>
+		var container;
+
+		var state;
+
+		var front_buffer, back_buffer, home_page;
+
+		function finish_frame() {
+			RequestRunning = false;
+
+			$(back_buffer).css('visibility', 'visible');
+			$(front_buffer).css('visibility', 'hidden');
+			$('#temp').html("");
+
+			var t = front_buffer;
+			front_buffer = back_buffer;
+			back_buffer = t;
+		}
+
+		function post_layout(html) {
+			$(front_buffer).find(".info_popup").css("visibility", "hidden");
+			$(front_buffer).find(".image_popup").css("visibility", "hidden");
+			$(back_buffer).html(html);
+			//setTimeout(function() {
+				finish_frame();
+      //}, 500);
+		}
+
+		function swap_buffers() {
+			$(back_buffer).css('visibility', 'visible');
+			$(temp_container).css('visibility', 'hidden');
+			$(front_buffer).css('visibility', 'hidden');
+			$(home_buffer).css('visibility', 'hidden');
+
+			var t = front_buffer;
+			front_buffer = back_buffer;
+			back_buffer = t;
+
+		}
+
+		//return home and hide all other div container
+		function go_home() {
+			$(home_button).css('visibility', 'hidden');  //hide the home button when on home screen
+			$(back_buffer).css('visibility', 'hidden');
+			$(front_buffer).css('visibility', 'hidden');
+			$(temp_container).css('visibility', 'hidden');
+			$(home_buffer).css('visibility', 'visible');
+		}
+
+		//close enlarged image and captions
+		function closeAll() {
+			$('#container').find(".info_popup").css("visibility", "hidden");
+			$('#container').find(".image_popup").css("visibility", "hidden");
+		}
+
+		function home_page(event) {
+			var start_bool = "true";
+
+			var userinfo = "&x=" + event.clientX + "&y=" + event.clientY + "&time=" + new Date().getTime() + "&start_bool=" + start_bool;
+
+			query_url = "http://127.0.0.1:1337/api/post_user?" + userinfo;
+
+			$.ajax({
+				dataType: 'json',
+				url: query_url,
+				data: {},
+				success: function(result) {
+          data = result['data']
+					window.location = data;
+					setTimeout(function() {
+						post_layout(data);
+          }, 50000);
+				}
+			});
+		}
+
+		//Enter clicked to view video
+		$(window).keypress(function(e) {
+			if (e.keyCode == 13) {
+				console.log("space was pressed");
+				closeAll();
+				state.introAnimator.run("attract_video.mp4");
+			}
+		});
+
+		//when idle timer is up load intro video
+		$.idleTimer(60000); //60000
+		$(document).bind("idle.idleTimer", function() {
+
+			closeAll(); // close Captions and enlarge images
+
+			state.introAnimator.run("attract_video.mp4");
+
+		});
+
+		// THIS WILL CLOSE ENLARGE IMAGES THAT STAY PRISISTANT
+		$(window).click(function(e) {
+				var id = e.target.id;
+				if(id == "enlarged_image"){
+					closeAll();
+				} else if(id == "close_Enlarge"){
+					closeAll();
+				}
+		});
+
+		$(document).ready(function() {
+			$("*").dblclick(function(e){
+				e.preventDefault();
+			});
+
+			state = new Bradbury();
+
+			state.introAnimator.run("attract_video.mp4");
+
+			front_buffer = document.getElementById('ping-container');
+			back_buffer = document.getElementById('pong-container');
+			temp_container = document.getElementById('temp_container');
+			home_buffer = document.getElementById('home-container');
+
+			home_button = document.getElementById('homeButton');
+			back_button = document.getElementById('backButton');
+
+		});
+	</script>
+	<div id="container" style="background-color:darkgrey;width:100vw;height:100vh">
+
+		<!-- <div id="container" style="background-color:darkgrey;width:100vw;height:100vh"> -->
+		<img id="homeButton" src="icons/home.png" height="100" width="100" style="visibility:hidden;position:absolute;top:0px;right:0px;z-index:1; padding:30px;" onclick="go_home()" />
+		<img id="backButton" src="icons/back.png" height="100" width="100" style="visibility:hidden;position:absolute;top:0px;left:0px;z-index:1;padding:15px;" onclick="swap_buffers()" />
+		<div id="home-container" style="height:100%;width:100%;visibility:visible">
+		</div>
+
+		<div id="temp_container" style="background-color:darkgrey;width:100vw;height:100vh"></div>
+		<div id="ping-container" style="height:100%;width:100%;visibility:hidden"></div>
+		<div id="pong-container" style="height:100%;width:100%;visibility:hidden"></div>
+		<!-- </div> -->
+
+		<!-- Video interaction -->
+		<div id="overlay" style="visibility:hidden">
+			<div id="video-contents" style="position:absolute;top:0px;left:0px;background-color:black;z-index:2;width:100vw;height:100vh;visibility:inherit"></div>
+			<div id="video-controls" style="position:absolute;top:0px;left:0px;z-index:3;width:100vw;height:100vh;visibility:hidden">
+				<div id="video-controls-up" style="position:absolute;top:0px;right:0%;background-color:transparent;z-index:100;width:40%;height:10%" onclick=state.animator.hide();>
+					<img style="position:absolute;top:50px;right:50px;width:80px; height:70px;" src="icons/exitTwo.png">
+				</div>
+				<div id="video-controls-exit" style="position:absolute;top:0px;left:0px;background-color:transparent;z-index:4;width:100%;height:100%" onclick=state.animator.hide();></div>
+
+			</div>
+		</div>
+		<div id="introVideoOverlay" style="visibility:hidden">
+			<div id="introVideo-contents" style="position:absolute;top:0px;left:0px;background-color:black;z-index:2;width:100vw;height:100vh;visibility:inherit"></div>
+			<div id="introVideo-controls" style="position:absolute;top:0px;left:0px;z-index:3;width:100vw;height:100vh;">
+				<div id="introVideo-controls-reactivate" style="visibility:inherit;position:absolute;top:0px;left:0px;background-color:transparent;z-index:4;width:100%;height:100%" onclick=state.introAnimator.startExploration();>
+				</div>
+			</div>
+		</div>
+		<div id="themeVideoOverlay" style="visibility:hidden">
+			<div id="themeVideo-contents" style="position:absolute;top:0px;left:0px;background-color:black;z-index:2;width:100vw;height:100vh;visibility:inherit"></div>
+			<div id="themeVideo-controls" style="position:absolute;top:0px;left:0px;z-index:3;width:100vw;height:100vh;">
+				<div id="video-controls-up" style="position:absolute;top:0px;right:0%;background-color:transparent;z-index:100;width:40%;height:10%;" onclick=state.themeAnimator.hide();>
+					<img style="position:absolute;top:50px;right:50px;width:80px; height:70px;" src="icons/exitTwo.png">
+
+				</div>
+			</div>
+			<div id="themeVideo-controls-reactivate" style="position:absolute;top:0px;left:0px;background-color:transparent;z-index:4;width:100%;height:100%;" onclick=state.themeAnimator.displayStories();></div>
+		</div>
+
+		<div id="categoryVideoOverlay" style="visibility:hidden">
+			<div id="categoryVideo-contents" style="position:absolute;top:0px;left:0px;background-color:black;z-index:2;width:100vw;height:100vh;visibility:inherit"></div>
+			<div id="categoryVideo-controls" style="position:absolute;top:0px;left:0px;z-index:3;width:100vw;height:100vh;">
+				<div id="video-controls-up" style="position:absolute;top:0px;right:0%;background-color:transparent;z-index:100;width:40%;height:10%;" onclick=state.categoryAnimator.hide();>
+					<img style="position:absolute;top:50px;right:50px;width:80px; height:70px;" src="icons/exitTwo.png">
+				</div>
+			</div>
+			<div id="introVideo-controls-reactivate" style="position:absolute;top:0px;left:0px;background-color:transparent;z-index:4;width:100%;height:100%;" onclick=state.categoryAnimator.displayStories();></div>
+		</div>
+		<div id="temp" style="z-index:-1"></div>
+</body>
+
+</html>
