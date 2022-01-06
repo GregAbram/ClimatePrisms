@@ -10,7 +10,10 @@ for i in static/* ; do
   fi 
 done
 
+rm -f static/project.css
+rm -f static/content
 rm -f static/index.html
+rm -rf xlsx
 
 if [[ -e db ]] ; then
   rm -rf db
