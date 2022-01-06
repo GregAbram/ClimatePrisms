@@ -11,7 +11,7 @@ for i in static/* ; do
 done
 
 rm -f static/project.css
-rm -f static/content
+rm -rf static/content
 rm -f static/index.html
 rm -rf xlsx
 
