@@ -45,6 +45,6 @@ m = MongoClient('localhost', 1336)
 m['climateprisms'].drop_collection('fillers')
 
 for i in os.listdir(project + '/static/content/fillers'):
-	s = sz('content/fillers/' + i)
+	s = sz(project + '/static/content/fillers/' + i)
 	if s != -1:
 		m.climateprisms['fillers'].insert_one({'fname': 'content/fillers/' + i, 'width': s[0], 'height': s[1]})
