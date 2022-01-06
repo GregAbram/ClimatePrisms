@@ -1,4 +1,6 @@
-sh stop.sh
+#! /bin/bash
+
+bash stop.sh
 
 sleep 2
 

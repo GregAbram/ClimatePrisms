@@ -1,3 +1,5 @@
+#! /bin/bash
+
 if [[ ! -e cp.status ]] ; then
   echo ClimatePrisms is not running?
   exit
