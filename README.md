@@ -2,13 +2,13 @@
 
 ##Intoduction
 
-In order to present an interesting, interactive experience with a set of content about some subject matter, users should be able to interact with the content, navigating the content in a path reflecting their interest.  	Rather than being presented a fixed path through the content designed by a curator, the user should be able to express their interest in particular items from the content, then be able to a) dive deeper into that sub-subject matter and b) be presented with related content that he might also be interested in.   
+In order to present an interesting, interactive experience with a set of content about some subject matter, users should be able to interact with the content, navigating the content in a path reflecting their interest.  Rather than being constrained to a fixed path through the content designed by a curator, the user should be able to express their interest in particular items from the content, then be able to a) dive deeper into that sub-subject matter and b) be presented with related content that he might also be interested in.   
 
 ClimatePrisms is a framework that allows content data to be organized for such exploration and then provide an interface for the interactive experience of the content.   
 
 ##Experience
 
-Using ClimatePrisms, a user is initially presented with an introductory image with buttons for different *themes*, and witin each themse, *stories*.  Themes are effectively sub-subjects of the overall material that address a particular aspect of the material, while stories are curated subsets of theme contents.   The user selects a theme or a story, and a new page is presented with content from that story line - a page continaing five or so content items tiling the frame.  The user can then select any of these items for further exploration; when a content item is selected, a new set of related content is chosen and a new page is created with the selected item taking a predominant position in the frame, along with loosely related content.  The user can then select the predominant content to do a deeper dive into that subject matter, or select a neighboring item to change direction in their exploration of the story line.
+Using ClimatePrisms, a user is initially presented with an introductory image with buttons for different *themes*, and witin each theme, *stories*.  Themes are effectively sub-subjects of the overall material that address a particular aspect of the material, while stories are curated subsets of theme contents.   The user selects a theme or a story, and a new page is presented with content from that story line - a page continaing five or so content items tiling the frame.  The user can then select any of these items for further exploration; when a content item is selected, a new set of related content is chosen and a new page is created with the selected item taking a predominant position in the frame, along with loosely related content.  The user can then select the predominant content to do a deeper dive into that subject matter, or select a neighboring item to change direction in their exploration of the story line.
 
 Content items are images or movies.   Movies are not initally run; the user is presented an initial frame with a 'run' button that expands the content to fill the screen and run as a movie.  Other content - particularly images with fine detail not easily visible in a small portion of the screen - includes an 'expand-me' button that causes the content to fill the screen for a better look.   Many of the content items will have a short description included; an icon allows the user to see this as a popup.   At any time a 'home' button is available to return to the initial frame and allow the user to select a new story line.   This will automatically occur after some period of idleness.
 
@@ -32,15 +32,16 @@ Ultimately, ClimatePrisms consists of two functional components:
 
 ##Fillers
 
-In order to format a page containing multiple client items without clipping them or distorting their aspect ratios, a set of *filler* images is reqired.   These images are intendended to be clipped to fill any remaining space after the content items have been placed.   These are held in _content/fillers_.
+In order to format a page containing multiple client items without clipping them or distorting their aspect ratios, a set of *filler* images is reqired.   These images are *intended* to be clipped and scaled to fill any remaining space after the content items have been placed.   These are held in _content/fillers_.
 
-##Ports
+#Setup
 
-ClimatePrisms starts mongod on port 1336 and the web server on 1337
+To set up a ClimatePrisms instance, the user provides three items in one input directory:
 
-##Database Fields
++ A *setup.json* file that contains the information necessary to create the initial webpage.   This file contains the title of the project, the contents of the homepage title section, and the theme/story structure of the data.
++ One or more Excel xlsx files describing the instance content.   
 
-By default, the database organizes content into _themes_ and, within each theme, _stories_.  These are presented on an initial page, offering the user the ability to select a theme or a story to 
+As described, content consists of a potentially large number of images and movies.  
 
 
 #Running Climate Prisms

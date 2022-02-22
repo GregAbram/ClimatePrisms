@@ -2,16 +2,7 @@
 
 echo "setup start"
 
-if [[ X$1 == "X" ]] ; then
-  echo project required
-  exit 1
-fi
-
-if [[ $1 = /* ]] ; then
-  project=$1
-else
-  project=`pwd`/$1
-fi
+project=/ClimatePrisms.Content
 
 if [[ -e db ]] ; then 
   echo "Is ClimatePrisms already set up?   If you need to re-set it, sh cleanup.sh first"
@@ -25,6 +16,11 @@ mongod --dbpath `pwd`/db --port 1336 > mongod.out 2>&1  &
 mongo_pid=$!
 
 for i in $project/static/* ; do
+  lcl=`echo $i | sed "s?\$project/??"`
+  if [[ -e $lcl ]] ; then
+    echo removing $lcl
+    rm $lcl
+  fi
   ln -s $i static
 done
 
