@@ -34,22 +34,80 @@ Ultimately, ClimatePrisms consists of two functional components:
 
 In order to format a page containing multiple client items without clipping them or distorting their aspect ratios, a set of *filler* images is reqired.   These images are *intended* to be clipped and scaled to fill any remaining space after the content items have been placed.   These are held in _content/fillers_.
 
-#Setup
+#Project Directory
 
-To set up a ClimatePrisms instance, the user provides three items in one input directory:
+To set up a ClimatePrisms instance, the user provides several items in one input *project directory*:
 
-+ A *setup.json* file that contains the information necessary to create the initial webpage.   This file contains the title of the project, the contents of the homepage title section, and the theme/story structure of the data.
-+ One or more Excel xlsx files describing the instance content.   
+### A *setup.json* file 
 
-As described, content consists of a potentially large number of images and movies.  
+The setup.json file contains the information necessary to create the initial webpage.   This file contains the title of the project, the contents of the homepage title section, and the theme/story structure of the data.
 
+The setup.json file consists of a JSON dictionary containing a title for the project, strings for the initial page, and an array of *themes*. The themes correpond to the columns of options on the homepage.   Each theme has a title, an introductory videp, a tag, and an array of *stories*. Each story has a title, an introductory video and a tag.
+	
+### One or more Excel xlsx files *describing* the instance content.   
+
+The first row in an xlsx file contains column titles.   
+
+* **include** a flag that should be
+* **folder**  where, relative to the project *static/content* directory where the primary content resides
+* **filename** the filename in the aforementioned folder
+* **theme** the theme that the content pertains to
+* **story** the story within the aforementioned theme that the content pertains to
+* **text** 1 if the content includes text; 0 otherwise
+* **provenance** where the content came for, if available
+* **enlarge_image** whether the content can/should be enlarged in the displat
+* **content** If the content has a backing video, the file containing the video
+* **caption** a caption for the image
+
+### A *static* directory
+
+The static directory contains static data used by the project.   One vital subdirectory of *static* is *content*, which (perhaps needless to say) is the actual content.  The content directory should contain subdirectories and files as per the folder and filename fields of the **xlsx** files, as well as a video file named **attract_video.mp4** which will be shown when the system is idle, and a **fillers** directory containing images that can be cropped to fill gaps in the layouts.
+
+#Docker
+
+The ClimatePrisms server is presented as a Docker image.   There are two ways this image can be created; one in which hich the content is bundled into the image, and one in which the content is linked to the image at run time.   The Dockerfile is set up for the latter form; commented-out code in there show how the content can be embedded.
+
+The simplest method of running the ClimatePrisms server is to attach the content to the server at run time.  This can be done by using **docker://gregabram/cp-ext**.
+
+If you want to build a bundled ClimatePrisms image, you will need to clone the ClimatePrisms source from GitHub, modify the Dockerfile in the root directory and run: 
+
+	docker build -it {imagename} .
+	
+You can push this image to DockerHub if you wish, enabling users to access a fully bundled image.
+
+#Running Climate Prisms Server
+
+
+The ClimatePrisms server is run by a Docker command line:
+
+	docker run -p 127.0.0.1:{host port}:1337/tcp -id {docker image}
+	
+where:
+
+* {host port} is the port to attach the browser to on the host - I use 1337.
+* {docker image} may be docker::gregabram/cp-ext for a pre-built image that one attaches content to, or a locally-built image that contains bundled content. 
+	
+If content is to be attached to the server at run time, the content is attached using Docker's **-v** flag:
+
+	docker run -p 127.0.0.1:{host port}:1337/tcp -v {directory}:/ClimatePrisms.Content -id {docker image}
+
+where:
+
+* {directory} is the fully qualified path name of the content on the host
+
+TO discover whether there is a ClimatePrisms container running:
+
+	docker container ls
+	
+If a container is running, it can be stopped and removed:
+
+	docker stop {container ID}
+	docker rm {container ID}
+
+where {container ID} is the ID from the previous step.
+
+The ClimatePrisms source root directory contains example scripts to start and stop the server container.
 
 #Running Climate Prisms
 
-##From the command line
-
-ClimatePrisms can be run from the command line.   
-
-Two Docker 
-
-
+Once the ClimatePrisms server is running, start a browser on the host desktop and point it at: **localhost:{port}/static/index.html**  where {port} is the port number specified when starting the server.
