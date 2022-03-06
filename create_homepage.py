@@ -50,12 +50,12 @@ button_box['class'] = 'home-container-button-box '
 button_box['style'] = "display: grid; grid-template-columns: " + ('1fr '*num_themes) + ';'
 
 for t, theme in enumerate(config['themes']):
-  tdiv = soup.new_tag('div')
-  tdiv['class'] = 'home-container-button-box-theme home-container-button-box-column-%d' % t
-  tdiv['style'] = "grid-row: 1; grid-column: %d;" % (t+1)
-  tdiv['onclick'] = "state.categoryAnimator.run('%s', '%s:any')" % (theme['theme']['video'], theme['theme']['tag'])
   p = soup.new_tag('p')
   p.string = theme['theme']['title']
+  p['class'] = 'home-container-button-box-column-%d' % t
+  tdiv = soup.new_tag('div')
+  tdiv['class'] = 'home-container-button-box-theme home-container-button-box-column-%d' % t
+  tdiv['onclick'] = "state.categoryAnimator.run('%s', '%s:any')" % (theme['theme']['video'], theme['theme']['tag'])
   tdiv.append(p)
   button_box.append(tdiv)
 
