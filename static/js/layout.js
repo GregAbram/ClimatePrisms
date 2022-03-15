@@ -131,8 +131,10 @@ Layout.prototype.createTiles = function(content)
 	this.min_height 			= this.min_height_proportion * $(window).height();
 	this.min_gap    			= this.min_gap_proportion * $(window).width();
 
+  // Last content is the destination when click on filler.   Place the non-fillers
+
 	var tiling = [];
-	for (var tnum = 0; tnum < content.length && tiling.length < this.max_images; tnum++)
+	for (var tnum = 0; tnum < (content.length-1) && tiling.length < this.max_images; tnum++)
 	{
 		var image = content[tnum];
 

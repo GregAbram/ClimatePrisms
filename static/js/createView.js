@@ -11,7 +11,10 @@ function createView(state, contents) {
 
     closeAllOverlays(); // close all captions and image enlargement to create view
 
-    state.properties = getProperties(contents); //fill the properties data structure
+    images = contents['data'].slice(0, 5)
+    images.push(contents['filler node'])
+
+    state.properties = getProperties(images); //fill the properties data structure
 
     state.candidate_images = [];
     for (var i = 0; i < state.properties.length && i < 6; i++) {
@@ -32,14 +35,10 @@ function createView(state, contents) {
 
 function imagesLoaded(ids, data) {
 
-    var original_candidate_images = state.candidate_images;
-
-    state.candidate_images = []
     for (var i in ids) {
-        var c = original_candidate_images[ids[i].index];
-        c.width = ids[i].width;
-        c.height = ids[i].height;
-        state.candidate_images.push(c);
+        var indx = ids[i].index
+        state.candidate_images[indx].width = ids[i].width;
+        state.candidate_images[indx].height = ids[i].height;
     }
 
     state.tiled_images = state.layout.createTiles(state.candidate_images);
@@ -168,12 +167,15 @@ function popout_image(a, e) {
 
 
 //LAYOUT CREATION BY PASSING HTML to Post_layout
+
 function createHTML(state) {
     var images = state.tiled_images;
     // Colors for "images" without content - e.g. empty rects
     var colors = ['darkgrey'];
     current_story_count = current_story_count + 1;
     html = '';
+
+    filler_destination = state.candidate_images[state.candidate_images.length - 1];
 
     var img_id = 0;
     for (var i in images) {
@@ -206,7 +208,18 @@ function createHTML(state) {
             var ih = s * b.height;
 
             html += '<div id=' + divid + ' style="overflow:hidden;position:absolute;left:' + x + 'px;top:' + y + 'px;width:' + rw + 'px;height:' + rh + 'px; background-color:black">';
-            html += '  <img style="width:' + iw + 'px;height:' + ih + 'px;" src="' + b.fname + '" class=shadowOver "/>';
+      
+            html += "  <img style='width:"
+                    + iw 
+                    + 'px;height:'
+                    + ih 
+                    + "px;' onclick='loadSelectedContent(event, "
+                    + filler_destination.json 
+                    + ")' src='" 
+                    + b.fname
+                    + "' class=shadowOver />";
+            
+            html += '  <img style="width:' + iw + 'px;height:' + ih + 'px;" onclick="loadSelectedContent(event, ' + filler_destination.json + ')" src="' + b.fname + '" class=shadowOver "/>';
             html += '</div>';
 
         }

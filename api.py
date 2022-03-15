@@ -42,6 +42,9 @@ class API:
       i.pop('_id')
     return json.dumps({ 'data': f })
 
+  def find_one(self, q):
+    return self.nodes.find_one(q)
+
   def find_and_add(self, q, n, r):
     find_results = list(self.nodes.find(q))
     if len(find_results) > 0:
@@ -50,31 +53,8 @@ class API:
 
   def get_json(self, args):
 
-    now = time()
-    if now - self.last_user_action_time > 180:  # 3 minutes
-      self.user_id = self.user_id + 1
-    self.userinfo.insert_one({'userid': self.user_id, 'query': args})
-
-    reply_nodes = []
-
-    theme = args['theme']
-    story = args['story']
-
-    query = {'include': 'x', 'theme': theme, 'story': story}
-    
-    query['text'] = 0
-    reply_nodes = self.find_and_add(query, 2, reply_nodes)
-
-    # select from that category WITH TEXT
-
-    query['text'] = 1
-    reply_nodes = self.find_and_add(query, 1, reply_nodes)
-
-    for i in reply_nodes:
-      i.pop('_id')
-
-    s = json.dumps({ 'data': reply_nodes })
-    return s;
+    args['tag'] = args['theme'] + ':' + args['story']
+    return self.get_tag(args)
 
   def get_tag(self, args):
 
@@ -86,10 +66,16 @@ class API:
     reply_nodes = []
 
     theme,story = args['tag'].split(':')
+
+    # One from another theme
+
+    query = {'include': 'x', 'theme': {'$ne': theme}}
+    reply_nodes.append(self.find_one(query))
+
     if story == 'any':
         query = {'include': 'x', 'theme': theme}
     else:
-        query = {'include': 'x', 'theme': theme, 'story': story}
+        query = {'include': 'x', 'theme': theme, '$or': [{'story': story}, {'story': 'any'}]}
 
     query['text'] = 0
     reply_nodes = self.find_and_add(query, 2, reply_nodes)
@@ -102,7 +88,13 @@ class API:
     for i in reply_nodes:
       i.pop('_id')
 
-    s = json.dumps({ 'data': reply_nodes })
+    query = {'include': 'x', 'type': 'video', 'theme': theme}
+    filler_node = self.find_one(query)
+    if filler_node != None:
+      filler_node.pop('_id')
+
+    s = json.dumps({ 'data': reply_nodes, 'filler node': filler_node })
+
     return s;
 
   def get_content(self, args):

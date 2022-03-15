@@ -114,7 +114,7 @@
 				url: "http://127.0.0.1:1337/api/get_json",
 				data: selected_content,
 				success: function(result) {
-					createView(state, result['data']);
+					createView(state, result);
 				}
 			});
 		}
@@ -127,7 +127,7 @@
 			url: "http://127.0.0.1:1337/api/get_tag?tag=" + encodeURI(tag),
 			data: {},
 			success: function(result) {
-				createView(state, result['data']);
+				createView(state, result);
 			}
 		});
 	}
