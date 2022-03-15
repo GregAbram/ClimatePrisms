@@ -43,13 +43,13 @@ class API:
     return json.dumps({ 'data': f })
 
   def find_one(self, q):
-    return self.nodes.find_one(q)
+    return list(self.nodes.aggregate([{'$match': q}, { '$sample': {'size': 1}}]))[0]
+
+  def find_n(self, q, n):
+    return list(self.nodes.aggregate([{'$match': q}, { '$sample': {'size': n}}]))
 
   def find_and_add(self, q, n, r):
-    find_results = list(self.nodes.find(q))
-    if len(find_results) > 0:
-      r = r + self.choose(find_results, n)
-    return r
+    return r + list(self.nodes.aggregate([{'$match': q}, { '$sample': {'size': n}}]))
 
   def get_json(self, args):
 
@@ -89,11 +89,12 @@ class API:
       i.pop('_id')
 
     query = {'include': 'x', 'type': 'video', 'theme': theme}
-    filler_node = self.find_one(query)
-    if filler_node != None:
-      filler_node.pop('_id')
+    filler_nodes = self.find_n(query, 6)
 
-    s = json.dumps({ 'data': reply_nodes, 'filler node': filler_node })
+    for i in filler_nodes:
+      i.pop('_id')
+
+    s = json.dumps({ 'data': reply_nodes, 'filler nodes': filler_nodes })
 
     return s;
 

@@ -11,23 +11,18 @@ function createView(state, contents) {
 
     closeAllOverlays(); // close all captions and image enlargement to create view
 
-    images = contents['data'].slice(0, 5)
-    images.push(contents['filler node'])
-
-    state.properties = getProperties(images); //fill the properties data structure
+    state.properties = getProperties(contents['data']); 
+    state.filler_properties = getProperties(contents['filler nodes']);
 
     state.candidate_images = [];
-    for (var i = 0; i < state.properties.length && i < 6; i++) {
+    for (var i = 0; i < state.properties.length; i++) {
         var prop = state.properties[i];
         state.candidate_images.push(prop);
     }
 
     var image_list = [];
     for (var i in state.candidate_images)
-        image_list.push({
-            name: "content/" + state.candidate_images[i].folder + "/" + state.candidate_images[i].image,
-            index: i
-        });
+        image_list.push({ name: "content/" + state.candidate_images[i].folder + "/" + state.candidate_images[i].image, index: i });
 
     ImageLoader.init(image_list, imagesLoaded, state)  // load images with attributes from imageloaer
     ImageLoader.start($('#temp'))
@@ -55,6 +50,7 @@ function getProperties(nodes) {
             level: n.level,
             tags: n.tagmain + ',' + n.tagmain2 + ',' + n.subcategory,
             color: n.color,
+            caption: n.caption,
             meta: n.provenance,
             image: n.filename,
             context: n.context,
@@ -175,7 +171,8 @@ function createHTML(state) {
     current_story_count = current_story_count + 1;
     html = '';
 
-    filler_destination = state.candidate_images[state.candidate_images.length - 1];
+    filler_destinations = state.filler_properties;
+    next_filler = 0;
 
     var img_id = 0;
     for (var i in images) {
@@ -208,24 +205,27 @@ function createHTML(state) {
             var ih = s * b.height;
 
             html += '<div id=' + divid + ' style="overflow:hidden;position:absolute;left:' + x + 'px;top:' + y + 'px;width:' + rw + 'px;height:' + rh + 'px; background-color:black">';
+
+            filler = state.filler_properties[next_filler];
+            next_filler = (next_filler + 1) % state.filler_properties.length;
       
             html += "  <img style='width:"
                     + iw 
                     + 'px;height:'
                     + ih 
                     + "px;' onclick='loadSelectedContent(event, "
-                    + filler_destination.json 
+                    + filler.json 
                     + ")' src='" 
                     + b.fname
                     + "' class=shadowOver />";
             
-            html += '  <img style="width:' + iw + 'px;height:' + ih + 'px;" onclick="loadSelectedContent(event, ' + filler_destination.json + ')" src="' + b.fname + '" class=shadowOver "/>';
+            // html += '  <img style="width:' + iw + 'px;height:' + ih + 'px;" onclick="loadSelectedContent(event, ' + filler_destination.json + ')" src="' + b.fname + '" class=shadowOver "/>';
             html += '</div>';
 
         }
         else
         {
-            var info = image.name;
+            var info = image.caption;
             var textOnImage = image.enlarge_image == 1;
 
 

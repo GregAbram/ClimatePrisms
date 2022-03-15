@@ -31,4 +31,5 @@ python3 ./tools/fillers.py $project
 
 echo "setup done"
 
-python3 server.py 1337 > /var/log/cp.log 2>&1 
+python3 server.py 1337 > /var/log/cp.log 2>&1 &
+sleep 999999999
