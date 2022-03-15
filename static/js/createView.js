@@ -162,7 +162,7 @@ function popout_image(a, e) {
 }
 
 
-//LAYOUT CREATION BY PASSING HTML to Post_layout
+var next_filler = 0;
 
 function createHTML(state) {
     var images = state.tiled_images;
@@ -172,7 +172,7 @@ function createHTML(state) {
     html = '';
 
     filler_destinations = state.filler_properties;
-    next_filler = 0;
+    next_filler_destination = 0;
 
     var img_id = 0;
     for (var i in images) {
@@ -192,7 +192,8 @@ function createHTML(state) {
 
         if (image.empty) {
 
-            var b = state.fillers[Math.floor(random() * 0.99 * state.fillers.length)];
+            var b = state.fillers[next_filler];
+            next_filler = (next_filler + 1) % state.fillers.length;
 
             var w = rw / b.width;
             var h = rh / b.height;
@@ -206,8 +207,8 @@ function createHTML(state) {
 
             html += '<div id=' + divid + ' style="overflow:hidden;position:absolute;left:' + x + 'px;top:' + y + 'px;width:' + rw + 'px;height:' + rh + 'px; background-color:black">';
 
-            filler = state.filler_properties[next_filler];
-            next_filler = (next_filler + 1) % state.filler_properties.length;
+            filler = state.filler_properties[next_filler_destination];
+            next_filler_destination = (next_filler_destination + 1) % state.filler_properties.length;
       
             html += "  <img style='width:"
                     + iw 
