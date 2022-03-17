@@ -187,8 +187,8 @@ Layout.prototype.createTiles = function(content)
 		if (tiling.length < (content.length-1) && this.subdiv_test(tiling.length, best_s, image, rect))
 		{
 			var s = this.subdiv(best_s);
-			iw = s * image.width;
-			ih = s * image.height;
+			iw = Math.trunc(s * image.width);   // HERE
+			ih = Math.trunc(s * image.height);
 		}
 		else if (this.can_stretch(image.width, image.height, rw, rh))
 		{
@@ -197,8 +197,8 @@ Layout.prototype.createTiles = function(content)
 		}
 		else
 		{
-			iw = best_s * image.width;
-			ih = best_s * image.height;
+			iw = Math.trunc(best_s * image.width); // AND HERE
+			ih = Math.trunc(best_s * image.height);
 		}
 
 		var gw = rw - iw;

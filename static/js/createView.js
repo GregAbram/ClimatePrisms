@@ -124,8 +124,6 @@ function createTiles(candidate_images) {
 
     var candidate_images = content_images.concat(texture_images).concat(croppable_images);
 
-    // candidate_images = [candidate_images[0]];
-
     var tiled_images = createLayout(candidate_images);
 
     return tiled_images;
@@ -230,7 +228,7 @@ function createHTML(state) {
             var textOnImage = image.enlarge_image == 1;
 
 
-            var div = '<div id=' + divid + ' style="background-color:black;position:absolute;left:' + x + 'px;top:' + y + 'px;width:' + rw + 'px;height:' + rh + 'px)">';
+            var div = '<div id=' + divid + ' style="background-color:black;position:absolute;left:' + x + 'px;top:' + y + 'px;width:' + rw + 'px;height:' + rh + 'px">';
             var img = '<img id=' + imgid + ' style="width:' + rw + 'px;height:' + rh + 'px" onmouseout=this.style.opacity=1; onmouseover=this.style.opacity=0.95; src="content/' + image.folder + "/" + image.image + '", onclick=\'loadSelectedContent(event, ' + image.json + ');\' />';
 
             html = html + div + img;

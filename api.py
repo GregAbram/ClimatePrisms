@@ -51,11 +51,6 @@ class API:
   def find_and_add(self, q, n, r):
     return r + list(self.nodes.aggregate([{'$match': q}, { '$sample': {'size': n}}]))
 
-  def get_json(self, args):
-
-    args['tag'] = args['theme'] + ':' + args['story']
-    return self.get_tag(args)
-
   def get_tag(self, args):
 
     now = time()
@@ -63,36 +58,52 @@ class API:
       self.user_id = self.user_id + 1
     self.userinfo.insert_one({'userid': self.user_id, 'query': args})
 
-    reply_nodes = []
-
-    theme,story = args['tag'].split(':')
+    if 'tag' in args:
+      theme,story = args['tag'].split(':')
+      reply_nodes = []
+    else:
+      theme = args['theme']
+      story = args['story']
+      reply_nodes = [args]
 
     # One from another theme
 
-    query = {'include': 'x', 'theme': {'$ne': theme}}
+    query = {'include': 'x', 'theme': {'$ne': theme}, 'type': 'image'}
     reply_nodes.append(self.find_one(query))
 
+    # half the time, pick a video or audio from this theme/story
+    if random() > 0.5:
+      query = {'include': 'x', 'theme': theme, 'story': story, 'type': {'$ne': 'image'}}
+      reply_nodes.append(self.find_one(query))
+      
+    # The remainder will be from the current theme and story (which might be 'any')
+
     if story == 'any':
-        query = {'include': 'x', 'theme': theme}
+        query = {'include': 'x', 'type': 'image', 'theme': theme}
     else:
-        query = {'include': 'x', 'theme': theme, '$or': [{'story': story}, {'story': 'any'}]}
+        query = {'include': 'x', 'type': 'image', 'theme': theme, '$or': [{'story': story}, {'story': 'any'}]}
 
-    query['text'] = 0
-    reply_nodes = self.find_and_add(query, 2, reply_nodes)
-
-    # select from that category WITH TEXT
+    # select ONE from that category WITH TEXT
 
     query['text'] = 1
     reply_nodes = self.find_and_add(query, 1, reply_nodes)
 
+    # select FOUR from that category WITHOUT TEXT
+
+    query['text'] = 0
+    reply_nodes = self.find_and_add(query, 4, reply_nodes)
+
     for i in reply_nodes:
-      i.pop('_id')
+      i['caption'] = i['caption'].replace("'", "")
+      if ('_id') in i:
+        i.pop('_id')
 
     query = {'include': 'x', 'type': 'video', 'theme': theme}
     filler_nodes = self.find_n(query, 6)
 
     for i in filler_nodes:
-      i.pop('_id')
+      if ('_id') in i:
+        i.pop('_id')
 
     s = json.dumps({ 'data': reply_nodes, 'filler nodes': filler_nodes })
 
