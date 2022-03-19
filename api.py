@@ -43,13 +43,19 @@ class API:
     return json.dumps({ 'data': f })
 
   def find_one(self, q):
-    return list(self.nodes.aggregate([{'$match': q}, { '$sample': {'size': 1}}]))[0]
+    agg = self.nodes.aggregate([{'$match': q}, { '$sample': {'size': 1}}])
+    return [i for i in agg]
 
   def find_n(self, q, n):
-    return list(self.nodes.aggregate([{'$match': q}, { '$sample': {'size': n}}]))
+    agg = self.nodes.aggregate([{'$match': q}, { '$sample': {'size': n}}])
+    return [i for i in agg]
 
   def find_and_add(self, q, n, r):
-    return r + list(self.nodes.aggregate([{'$match': q}, { '$sample': {'size': n}}]))
+    agg = self.nodes.aggregate([{'$match': q}, { '$sample': {'size': n}}])
+    return r + [i for i in agg]
+
+  def detail_general(self):
+    return
 
   def get_tag(self, args):
 
@@ -58,43 +64,38 @@ class API:
       self.user_id = self.user_id + 1
     self.userinfo.insert_one({'userid': self.user_id, 'query': args})
 
-    if 'tag' in args:
-      theme,story = args['tag'].split(':')
-      reply_nodes = []
+    theme = args['theme']
+    story = args['story']
+
+    print("GET_TAG ENTRY")
+
+    if args['sequence_level'] == '1':
+      reply_nodes = self.find_one({'include': 'x', 'theme': theme, 'story': story, 'detail': 'definition'})
+      reply_nodes = reply_nodes + self.find_n({'include': 'x', 'theme': theme, 'story': story, '$and': [{'detail': {'$ne': 'intro'}}, {'detail': {'$ne': 'definition'}}, {'detail': {'$ne': 'problem'}}, {'detail': {'$ne': 'impact'}}, {'detail': {'$ne': 'pointer'}}]}, 4)
+    elif args['sequence_level'] == '2':
+      reply_nodes = self.find_one({'include': 'x', 'theme': theme, 'story': story, 'detail': 'problem'}) + [args]
+      reply_nodes = reply_nodes + self.find_n({'include': 'x', 'theme': theme, 'story': story, '$and': [{'detail': {'$ne': 'intro'}}, {'detail': {'$ne': 'definition'}}, {'detail': {'$ne': 'problem'}}, {'detail': {'$ne': 'impact'}}, {'detail': {'$ne': 'pointer'}}]}, 4)
+    elif args['sequence_level'] == '3':
+      reply_nodes = self.find_one({'include': 'x', 'theme': theme, 'story': story, 'detail': 'impact'}) + [args]
+      reply_nodes = reply_nodes + self.find_n({'include': 'x', 'theme': theme, 'story': story, '$and': [{'detail': {'$ne': 'intro'}}, {'detail': {'$ne': 'definition'}}, {'detail': {'$ne': 'problem'}}, {'detail': {'$ne': 'impact'}}, {'detail': {'$ne': 'pointer'}}]}, 4)
     else:
-      theme = args['theme']
-      story = args['story']
-      reply_nodes = [args]
+      # add last image and a pointer
+      reply_nodes = [args] +  self.find_one({'include': 'x', '$or': [{'theme': {'$ne': theme}}, {'story': {'$ne': story}}], 'detail': 'pointer'})
 
-    # One from another theme
+      # half the time, pick a video or audio from this theme/story
+      if random() > 0.5:
+        query = {'include': 'x', 'theme': theme, 'story': story, 'type': {'$ne': 'image'}}
+        reply_nodes = reply_nodes + self.find_one(query)
 
-    query = {'include': 'x', 'theme': {'$ne': theme}, 'type': 'image'}
-    reply_nodes.append(self.find_one(query))
+      # select 4 without text and 1 with
+      reply_nodes = reply_nodes + self.find_n({'include': 'x', 'theme': theme, 'story': story, 'text': 0, '$and': [{'detail': {'$ne': 'intro'}}, {'detail': {'$ne': 'definition'}}, {'detail': {'$ne': 'problem'}}, {'detail': {'$ne': 'impact'}}, {'detail': {'$ne': 'pointer'}}]}, 4)
+      reply_nodes = reply_nodes + self.find_n({'include': 'x', 'theme': theme, 'story': story, 'text': 1, '$and': [{'detail': {'$ne': 'intro'}}, {'detail': {'$ne': 'definition'}}, {'detail': {'$ne': 'problem'}}, {'detail': {'$ne': 'impact'}}, {'detail': {'$ne': 'pointer'}}]}, 1)
 
-    # half the time, pick a video or audio from this theme/story
-    if random() > 0.5:
-      query = {'include': 'x', 'theme': theme, 'story': story, 'type': {'$ne': 'image'}}
-      reply_nodes.append(self.find_one(query))
-      
-    # The remainder will be from the current theme and story (which might be 'any')
-
-    if story == 'any':
-        query = {'include': 'x', 'type': 'image', 'theme': theme}
-    else:
-        query = {'include': 'x', 'type': 'image', 'theme': theme, '$or': [{'story': story}, {'story': 'any'}]}
-
-    # select ONE from that category WITH TEXT
-
-    query['text'] = 1
-    reply_nodes = self.find_and_add(query, 1, reply_nodes)
-
-    # select FOUR from that category WITHOUT TEXT
-
-    query['text'] = 0
-    reply_nodes = self.find_and_add(query, 4, reply_nodes)
 
     for i in reply_nodes:
-      i['caption'] = i['caption'].replace("'", "")
+      print(i['theme'], i['story'], i['filename'], i['type'], i['detail'])
+      if 'caption' in i:
+        i['caption'] = i['caption'].replace("'", "")
       if ('_id') in i:
         i.pop('_id')
 
@@ -107,6 +108,7 @@ class API:
 
     s = json.dumps({ 'data': reply_nodes, 'filler nodes': filler_nodes })
 
+    print('GET_TAG DONE')
     return s;
 
   def get_content(self, args):
@@ -114,6 +116,8 @@ class API:
     if now - self.last_user_action_time > 180:  # 3 minutes
       self.user_id = self.user_id + 1
     self.userinfo.insert_one({'userid': self.user_id, 'query': args})
+
+    pdb.set_trace()
 
     reply_nodes = []
     # query = {'filename': 'aud_ecology_1.png'}

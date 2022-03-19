@@ -27,14 +27,16 @@ CategoryAnimator.prototype.displayStories = function()
   $.idleTimer('reset');
 }
 
-CategoryAnimator.prototype.run = function(str, story_name)
+CategoryAnimator.prototype.run = function(str, select)
 {
+    theme = select['theme']
+    story = select['story']
     $.idleTimer('pause');
 	  $('#categoryVideoOverlay').css('visibility', 'visible')
     $('#categoryVideo-controls').css('visibility', 'visible')
     $('#home-container').css('visibility', 'hidden')
     this.current_video = str;
-    this.current_story = story_name;
+    this.current_story = theme + ':' + story;
     this.set_animation_html();
-    findTag(this.current_story);
+    findTag(select);
 }

@@ -1,8 +1,12 @@
 #! /bin/bash
 
+echo 'AAAAA' > /tmp/log
+
 mkdir -p db
 mongod --port 1336 --dbpath db >> mongo.out 2>&1  &
 sleep 2
+
+echo 'BBBB' >> /tmp/log
 
 echo "setup start"
 
@@ -17,7 +21,9 @@ for i in $project/static/* ; do
   ln -s $i static
 done
 
-python3 create_homepage.py $project
+echo 'CCCCC' $project >> /tmp/log
+python3 create_homepage.py $project > /tmp/sc.log 2>&1
+echo 'DDDDD' >> /tmp/log
 
 cd static
 

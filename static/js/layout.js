@@ -138,6 +138,11 @@ Layout.prototype.createTiles = function(content)
 	{
 		var image = content[tnum];
 
+		// no duplicates
+		for (var i = 0; i < tiling.length; i++)
+		  if (tiling[i].image == image.image)
+				continue
+
 		if (rects.length == 0)
 			break;
 
@@ -166,6 +171,10 @@ Layout.prototype.createTiles = function(content)
 				best_r = r;
 				best_s = s;
 			}
+
+			// We always select the first in the list for the major spot
+			if (tnum == 0)
+				break
 		}
 
 		if (best_r == -1)

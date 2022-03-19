@@ -65,6 +65,9 @@
 <script src="js/DisplayExp_Choice.js"></script>
 
 <script>
+
+  var sequence_level = 0;
+
 	var Bradbury = function() {
 		this.animator = new Animator();
 		this.introAnimator = new introAnimator();
@@ -88,6 +91,8 @@
 
 	function loadSelectedContent(event, selected_content)
 	{
+		if (RequestRunning)
+			return;
 
 		if (selected_content['content'] != '')
 		{
@@ -95,10 +100,13 @@
 			if (content.substr(0,4) == 'http')
 				window.open(content);
 			else
-				state.categoryAnimator.run(selected_content['content'], '%s:%s' % (selected_content['theme'], selected_content['story']));
+				state.categoryAnimator.run(selected_content['content'], selected_content);
 		}
 		else
 		{
+			selected_content['sequence_level'] = sequence_level;
+			sequence_level = sequence_level + 1
+			console.log("SEQ ->" + sequence_level)
 			if (RequestRunning) {
 				console.log("STOP");
 				return;
@@ -120,12 +128,19 @@
 		}
 	}
 
+  var selection = {};   // Global so it persists through the async call
+
 	//obtain content inside story category
-	function findTag(tag) {
+	function findTag(select) {
+		select['sequence_level'] = sequence_level;
+		sequence_level = sequence_level + 1
+
+		console.log("SEQ ->" + sequence_level)
+
 		$.ajax({
 			dataType: 'json',
-			url: "http://127.0.0.1:1337/api/get_tag?tag=" + encodeURI(tag),
-			data: {},
+			url: "http://127.0.0.1:1337/api/get_tag",
+			data: select,
 			success: function(result) {
 				createView(state, result);
 			}
@@ -148,6 +163,12 @@
 	function hidetext() {
 		$(id).css('visibility', 'hidden');
 	}
+
+	function initialSelection(video, select) {
+		 sequence_level = 1
+		 state.categoryAnimator.run(video, select)
+	}
+
 </script>
 
 <body style="margin:0;overflow:hidden">
