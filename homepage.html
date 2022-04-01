@@ -88,46 +88,6 @@
 	}
 
 	var RequestRunning = false;
-
-	function loadSelectedContent(event, selected_content)
-	{
-		if (RequestRunning)
-			return;
-
-		if (selected_content['content'] != '')
-		{
-      content = selected_content['content'];
-			if (content.substr(0,4) == 'http')
-				window.open(content);
-			else
-				state.categoryAnimator.run(selected_content['content'], selected_content);
-		}
-		else
-		{
-			selected_content['sequence_level'] = sequence_level;
-			sequence_level = sequence_level + 1
-			console.log("SEQ ->" + sequence_level)
-			if (RequestRunning) {
-				console.log("STOP");
-				return;
-			}
-
-			RequestRunning = true;
-
-			var imageClicked = event.target.id;
-			$('#' + imageClicked).css('outline', '5px #c7c59a');
-
-			$.ajax({
-				dataType: 'json',
-				url: "http://127.0.0.1:1337/api/get_tag",
-				data: selected_content,
-				success: function(result) {
-					createView(state, result);
-				}
-			});
-		}
-	}
-
   var selection = {};   // Global so it persists through the async call
 
 	//obtain content inside story category
@@ -145,6 +105,23 @@
 				createView(state, result);
 			}
 		});
+	}
+
+	function loadSelectedContent(event, selected_content)
+	{
+		if (RequestRunning)
+			return;
+
+		if (selected_content['content'] != '')
+		{
+      content = selected_content['content'];
+			if (content.substr(0,4) == 'http')
+				window.open(content);
+			else
+				state.categoryAnimator.run(selected_content['content'], selected_content);
+		}
+    else
+      findTag(selected_content);
 	}
 
 	function toggle_form() {

@@ -1,12 +1,12 @@
 #! /bin/bash
 
-echo 'AAAAA' > /tmp/log
+if test -e /db ; then
+  rm -rf /db
+fi
 
-mkdir -p db
-mongod --port 1336 --dbpath db >> mongo.out 2>&1  &
+mkdir -p /db
+mongod --port 1336 --dbpath /db >> mongo.out 2>&1  &
 sleep 2
-
-echo 'BBBB' >> /tmp/log
 
 echo "setup start"
 
@@ -21,14 +21,12 @@ for i in $project/static/* ; do
   ln -s $i static
 done
 
-echo 'CCCCC' $project >> /tmp/log
 python3 create_homepage.py $project > /tmp/sc.log 2>&1
-echo 'DDDDD' >> /tmp/log
 
 cd static
 
 for ss in $project/*xlsx ; do
-  python3 ../tools/fromExcel $ss
+  python3 ../tools/fromExcel $ss 
 done
 
 cd ..
